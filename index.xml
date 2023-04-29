@@ -1,0 +1,3 @@
+<imports>
+<import package="random" as="rnd">
+</imports>
