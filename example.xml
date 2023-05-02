@@ -1,0 +1,42 @@
+<gtml>
+<imports>
+    <import package="random" as="rnd"/>
+</imports>
+
+<metadata>
+    <meta key="application_id" value="com.kosa.example.app"/>
+</metadata>
+
+<window width="800" height="800" title="Example app">
+<ui>
+    <text>text</text>
+    <text id="component_with_id">222222</text>
+    <box>
+        <text>Nested text</text>
+    </box>
+    <box>
+        <box>
+            <text>This is data binding!: {i}</text>
+        </box>
+    </box>
+    <button onclick="clicked">A BUTTON</button>
+</ui>
+</window>
+
+<code>
+    <global>
+i = 0
+print("This code is in a global scope!!")
+    </global>
+    <class>
+def tomik():
+    print("This code is in the class!!")
+tomik()
+def clicked(self):
+    global i
+    i = rnd.randint(0,100)
+    print(i)
+    </class>
+</code>
+
+</gtml>
