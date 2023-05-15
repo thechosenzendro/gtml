@@ -1,42 +1,40 @@
 <gtml>
-<imports>
-    <import package="random" as="rnd"/>
-</imports>
+    <imports>
+        <import package="random" as="rnd" />
+    </imports>
 
-<metadata>
-    <meta key="application_id" value="com.kosa.example.app"/>
-</metadata>
+    <metadata>
+        <meta key="application_id" value="com.kosa.example.app" />
+    </metadata>
 
-<window width="800" height="800" title="Example app">
-<ui>
-    <text>text</text>
-    <text id="component_with_id">222222</text>
-    <box>
-        <text>Nested text</text>
-    </box>
-    <box>
-        <box>
-            <text>This is data binding!: {i}</text>
-        </box>
-    </box>
-    <button onclick="clicked">A BUTTON</button>
-</ui>
-</window>
-
-<code>
-    <global>
-i = 0
-print("This code is in a global scope!!")
-    </global>
-    <class>
-def tomik():
-    print("This code is in the class!!")
-tomik()
-def clicked(self):
-    global i
-    i = rnd.randint(0,100)
-    print(i)
-    </class>
-</code>
+    <window width="800" height="800" title="Example app">
+        <ui style="./styles/style.css">
+            <header>
+                <button onclick="open_document" icon="document-open-symbolic">Open Document</button>
+                <popover-menu id="nice_popover">
+                    <menu-action clickable="True" onactivate="test_menu_action">Test</menu-action>
+                </popover-menu>
+                <menu-button icon="open-menu-symbolic" popover="nice_popover"></menu-button>
+            </header>
+            <text class="title_tomik">A big text</text>
+            <text id="component_with_id" class="paragraph">Small text</text>
+            <box orientation="horizontal">
+                <text>Nested text</text>
+                <text>Horizontal text</text>
+            </box>
+            <box orientation="vertical">
+                <text>This is data binding!: {i}</text>
+                <text>Vertical text</text>
+            </box>
+            <button onclick="clicked">A BUTTON</button>
+            <check ontoggle="checked" id="wise_check">A Czech button! Oh wait...</check>
+            <switch ontoggle="switch_toggled">Switch</switch>
+            <slider digits="0" range="0,20" showvalue="False" value="10" onchange="slider_changed"></slider>
+        </ui>
+    </window>
+    <code>
+        <global source="./scripts/global.py" />
+        <class source="./scripts/class.py" />
+    </code>
 
 </gtml>
