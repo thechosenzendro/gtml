@@ -8,6 +8,7 @@ tomik()
 def clicked(self):
     global i
     i = rnd.randint(0, 100)
+    print("Clicked!")
 
 
 def checked(self):
@@ -29,5 +30,13 @@ def open_document(self):
     print("Opening document...")
 
 
-def test_menu_action(self):
+def test_menu_action(self, action):
     print("It works!")
+
+
+def entry_changed(self):
+    print(f"Entry changed!! Text: {self.get_text()}")
+
+
+def color_selected(self):
+    print(f"Color selected! Color: {self.get_color()}")

@@ -5,7 +5,9 @@ import random as rnd
 #Here are the imports
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Gdk, Adw, Gio
+from gi.repository import Gtk, Gdk, Adw, Gio, GLib
+# About the app
+GLib.set_application_name("Example GTML App")
 i = 0
 print("This code is in a global scope!!")
 
@@ -24,6 +26,7 @@ class MainWindow(Gtk.ApplicationWindow):
         def clicked(self):
             global i
             i = rnd.randint(0, 100)
+            print("Clicked!")
         
         
         def checked(self):
@@ -45,8 +48,16 @@ class MainWindow(Gtk.ApplicationWindow):
             print("Opening document...")
         
         
-        def test_menu_action(self):
+        def test_menu_action(self, action):
             print("It works!")
+        
+        
+        def entry_changed(self):
+            print(f"Entry changed!! Text: {self.get_text()}")
+        
+        
+        def color_selected(self):
+            print(f"Color selected! Color: {self.get_color()}")
         
         css_data = '''.title_tomik {
     font-size: 100px;
@@ -68,10 +79,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_titlebar(self.header_0_header)
         #Here are the attributes for header_0
 
-        self.button_1_containment_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.button_1_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.button_1 = Gtk.Button(label=f"""Open Document""")
-        self.button_1_containment_box.append(self.button_1)
-        self.header_0.append(self.button_1_containment_box)
+        self.button_1_container.append(self.button_1)
+        self.header_0.append(self.button_1_container)
         self.button_1.connect('clicked', open_document)
                 
         self.button_1.set_icon_name("document-open-symbolic")
@@ -86,15 +97,15 @@ class MainWindow(Gtk.ApplicationWindow):
         self.menu_action_3 = Gio.SimpleAction.new(self.menu_action_3_name, None)
         self.menu_action_3.set_enabled(True)
         self.add_action(self.menu_action_3)
-        self.nice_popover.append(f"""Test""", self.menu_action_3_name)
+        self.nice_popover.append(f"""Test""", f"win.{self.menu_action_3_name}")
         self.menu_action_3.set_enabled(True)
         self.menu_action_3.connect("activate", test_menu_action)
         #Here are the attributes for menu_action_3
 
-        self.menu_button_4_containment_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.menu_button_4_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.menu_button_4 = Gtk.MenuButton(label=f"""""")
-        self.menu_button_4_containment_box.append(self.menu_button_4)
-        self.header_0.append(self.menu_button_4_containment_box)
+        self.menu_button_4_container.append(self.menu_button_4)
+        self.header_0.append(self.menu_button_4_container)
         self.menu_button_4.set_icon_name("open-menu-symbolic")
         self.menu_button_4.set_popover(self.nice_popover_popover)
         #Here are the attributes for menu_button_4
@@ -133,20 +144,20 @@ class MainWindow(Gtk.ApplicationWindow):
         self.box_10.set_orientation(Gtk.Orientation.VERTICAL)
         #Here are the attributes for box_10
         
-        self.text_11 = Gtk.Label()
-        self.text_11.set_text(f"""This is data binding!: {i}""")
-        self.box_10.append(self.text_11)
-        #Here are the attributes for text_11
+        self.data_binding = Gtk.Label()
+        self.data_binding.set_text(f"""This is data binding!: {i}""")
+        self.box_10.append(self.data_binding)
+        #Here are the attributes for data_binding
         
         self.text_12 = Gtk.Label()
         self.text_12.set_text(f"""Vertical text""")
         self.box_10.append(self.text_12)
         #Here are the attributes for text_12
 
-        self.button_13_containment_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.button_13_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.button_13 = Gtk.Button(label=f"""A BUTTON""")
-        self.button_13_containment_box.append(self.button_13)
-        self.main_box.append(self.button_13_containment_box)
+        self.button_13_container.append(self.button_13)
+        self.main_box.append(self.button_13_container)
         self.button_13.connect('clicked', clicked)
                 
         #Here are the attributes for button_13
@@ -156,13 +167,13 @@ class MainWindow(Gtk.ApplicationWindow):
         self.wise_check.connect('toggled', checked)
         #Here are the attributes for wise_check
 
-        self.switch_15_containment_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.switch_15_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.switch_15 = Gtk.Switch()
         self.switch_15_label = Gtk.Label(label=f"""Switch""")
-        self.switch_15_containment_box.append(self.switch_15)
-        self.switch_15_containment_box.append(self.switch_15_label)
-        self.switch_15_containment_box.set_spacing(5)
-        self.main_box.append(self.switch_15_containment_box)
+        self.switch_15_container.append(self.switch_15)
+        self.switch_15_container.append(self.switch_15_label)
+        self.switch_15_container.set_spacing(5)
+        self.main_box.append(self.switch_15_container)
         self.switch_15.connect('state-set', switch_toggled)
         #Here are the attributes for switch_15
 
@@ -174,13 +185,37 @@ class MainWindow(Gtk.ApplicationWindow):
         self.slider_16.set_value(10)
         self.slider_16.connect('value-changed', slider_changed)
         #Here are the attributes for slider_16
+
+        self.entry_17 = Gtk.Entry()
+        self.entry_17.set_text(f"""Entry""")
+        self.entry_17_container = Gtk.Box()
+        self.entry_17_container.append(self.entry_17)
+        self.main_box.append(self.entry_17_container)
+        self.entry_17.set_placeholder_text("Placeholder text")
+        self.entry_17.connect('changed', entry_changed)
+        #Here are the attributes for entry_17
+
+        self.color_button_18_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.color_button_18 = Gtk.ColorButton()
+        self.color_button_18_label = Gtk.Label(label=f"""Color button""")
+        self.color_button_18_container.append(self.color_button_18)
+        self.color_button_18_container.append(self.color_button_18_label)
+        self.color_button_18_container.set_spacing(5)
+        self.main_box.append(self.color_button_18_container)
+        self.color_button_18.connect('color-set', color_selected)
+        #Here are the attributes for color_button_18
 #Here are the components
 class App(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.connect('activate', self.on_activate)
     def on_activate(self, app):
-        self.win = MainWindow(application=app)
+        allow_more_instances = False
+        if not allow_more_instances:
+            if not hasattr(self, "win"):
+                self.win = MainWindow(application=app)
+        else:
+            self.win = MainWindow(application=app)
         self.win.present()
 
 app = App(application_id="com.kosa.example.app")

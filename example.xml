@@ -5,6 +5,9 @@
 
     <metadata>
         <meta key="application_id" value="com.kosa.example.app" />
+        <meta key="application_name" value="Example GTML App" />
+        <meta key="allow_more_instances" value="False" />
+        <meta key="dark_mode" value="True" />
     </metadata>
 
     <window width="800" height="800" title="Example app">
@@ -23,13 +26,15 @@
                 <text>Horizontal text</text>
             </box>
             <box orientation="vertical">
-                <text>This is data binding!: {i}</text>
+                <text id="data_binding">This is data binding!: {i}</text>
                 <text>Vertical text</text>
             </box>
             <button onclick="clicked">A BUTTON</button>
             <check ontoggle="checked" id="wise_check">A Czech button! Oh wait...</check>
             <switch ontoggle="switch_toggled">Switch</switch>
             <slider digits="0" range="0,20" showvalue="False" value="10" onchange="slider_changed"></slider>
+            <entry placeholder="Placeholder text" onchange="entry_changed">Entry</entry>
+            <color-button onselect="color_selected">Color button</color-button>
         </ui>
     </window>
     <code>

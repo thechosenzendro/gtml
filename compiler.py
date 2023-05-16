@@ -3,7 +3,7 @@ import requests
 import ast
 import re
 from lxml import etree
-from components import components, global_attributes
+from resources import components, global_attributes, default_values
 
 
 # Shoutout to scribu on Stack Overflow for this function
@@ -19,15 +19,15 @@ def populate_dict_with_data(component, string_to_populate):
     # Changing the component_definition dictionary to str for the replace() function
     string_to_populate = str(string_to_populate)
     string_to_populate = string_to_populate.replace(
-        "#parent_id", parent_of_component_id
+        "$parent_id", parent_of_component_id
     )
 
     # Adding id property to the component function
     string_to_populate = string_to_populate.replace(
-        "#innertext", f'f"""{innerText}"""'.replace(f"\n", "")
+        "$innertext", f'f"""{innerText}"""'.replace(f"\n", "")
     )
     # Adding the parent property to the component function
-    string_to_populate = string_to_populate.replace("#id", f"self.{component_id}")
+    string_to_populate = string_to_populate.replace("$id", f"self.{component_id}")
     # And back to dictionary
     populated_dictionary = ast.literal_eval(string_to_populate)
     return populated_dictionary
@@ -38,16 +38,24 @@ def populate_string_with_data(component, string_to_populate):
     # Also, the {innertext} is prefixed with f''' and ended with ''' because that provides data binding.
     innerText = re.sub(r"\s+$", "", innertext(component))
     string_to_populate = string_to_populate.replace(
-        "#parent_id", parent_of_component_id
+        "$parent_id", parent_of_component_id
     )
 
     # Adding id property to the component function
     string_to_populate = string_to_populate.replace(
-        "#innertext", f'f"""{innerText}"""'.replace(f"\n", "")
+        "$innertext", f'f"""{innerText}"""'.replace(f"\n", "")
     )
     # Adding the parent property to the component function
-    string_to_populate = string_to_populate.replace("#id", f"self.{component_id}")
+    string_to_populate = string_to_populate.replace("$id", f"self.{component_id}")
     return string_to_populate
+
+
+def read_file(file_path):
+    try:
+        with open(file_path, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise Exception(f'The file at "{file_path}" does not exist. Check for typos.')
 
 
 input_file = "./example.xml"
@@ -60,13 +68,15 @@ import gi
 #Here are the imports
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Gdk, Adw, Gio
+from gi.repository import Gtk, Gdk, Adw, Gio, GLib
+# About the app
+GLib.set_application_name("$application_name")
 #Here is the global code
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, title="#window_title")
-        self.set_default_size(#window_width, #window_height)
+        super().__init__(*args, **kwargs, title="$window_title")
+        self.set_default_size($window_width, $window_height)
         #Here is the class code
         #Here would be the css provider
         self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -77,10 +87,15 @@ class App(Adw.Application):
         super().__init__(**kwargs)
         self.connect('activate', self.on_activate)
     def on_activate(self, app):
-        self.win = MainWindow(application=app)
+        allow_more_instances = $allow_more_instances
+        if not allow_more_instances:
+            if not hasattr(self, "win"):
+                self.win = MainWindow(application=app)
+        else:
+            self.win = MainWindow(application=app)
         self.win.present()
 
-app = App(application_id="#application_id")
+app = App(application_id="$application_id")
 app.run(sys.argv)
 """
 try:
@@ -88,8 +103,7 @@ try:
     print("Parsing xml...")
     code = etree.parse(input_file)
 except etree.ParseError:
-    print("A parse error occured. Have you closed all the tags?")
-    quit()
+    raise Exception("A parse error occured. Have you closed all the tags?")
 
 # Adding imports to buffer
 try:
@@ -130,25 +144,17 @@ try:
             raise TypeError(
                 "Either key or value are not declared. Try checking your meta tags."
             )
-        buffer = buffer.replace(f"#{meta_key}", meta_value)
+        buffer = buffer.replace(f"${meta_key}", meta_value)
 except Exception as error:
     print(f"An error occured while adding metadata. \n{error}")
 
 # Modifying window width, height and title properties (based on what properties user defined)
 print("Changing window properties...")
-important_window_attributes = {"width": False, "height": False, "title": False}
 window = code.find("./window")
 for attribute in window.attrib:
     attrib_value = window.attrib[attribute]
-    buffer = buffer.replace(f"#window_{attribute}", attrib_value)
-    if attribute in important_window_attributes:
-        important_window_attributes[attribute] = True
+    buffer = buffer.replace(f"$window_{attribute}", attrib_value)
 
-for attribute in important_window_attributes:
-    if important_window_attributes[attribute] != True:
-        raise TypeError(
-            f'The property "{attribute}" was not defined and is set as important. Please define the property.'
-        )
 # Getting css style information if available
 ui = code.find("./window/ui")
 ui_attributes = ui.attrib
@@ -207,7 +213,7 @@ for iteration, component in enumerate(code.findall("./window/ui//*")):
     if component_tag in components:
         component_definition = components[component_tag]
         component_definition = populate_dict_with_data(component, component_definition)
-        component_code = component_definition["component"]
+        component_code = component_definition["template"]
         component_code += f"\n        #Here are the attributes for {component_id}"
         # Attribute system
         attributes = component.attrib
@@ -223,7 +229,7 @@ for iteration, component in enumerate(code.findall("./window/ui//*")):
                 global component_code
                 # Populates all the arguments in the attribute code
                 attribute_code = populate_string_with_data(component, attribute_code)
-                attribute_code = attribute_code.replace("#string", attribute_value)
+                attribute_code = attribute_code.replace("$string", attribute_value)
                 # Adds the placeholder to the resulting code
                 attribute_code += (
                     f"\n        #Here are the attributes for {component_id}"
@@ -233,8 +239,8 @@ for iteration, component in enumerate(code.findall("./window/ui//*")):
                     re.sub("^\s+", "", attribute_code),
                 )
 
-            # #string means "I dont care what the value is and im comfortable passing whatever the user types as argument to my code". Checking if there are defined types.
-            if not "#string" in attribute_list[attribute]:
+            # $string means "I dont care what the value is and im comfortable passing whatever the user types as argument to my code". Checking if there are defined types.
+            if not "$string" in attribute_list[attribute]:
                 if attribute_value in attribute_list[attribute]:
                     attribute_code = attribute_list[attribute][attribute_value]
                     finish_adding_attribute(attribute_code)
@@ -243,7 +249,7 @@ for iteration, component in enumerate(code.findall("./window/ui//*")):
                         f'Value "{attribute_value}" of attribute "{attribute}" is not present in component definition. Possible values are: {list(attribute_list[attribute].keys())}'
                     )
             else:
-                attribute_code = attribute_list[attribute]["#string"]
+                attribute_code = attribute_list[attribute]["$string"]
                 finish_adding_attribute(attribute_code)
 
         for attribute in attributes:
@@ -275,17 +281,11 @@ print("Writing the code to the file...")
 # Getting the global code in the global tag
 global_code_path = code.find("./code/global").attrib["source"]
 try:
-    global_code = open(global_code_path).read()
-except (KeyError, FileNotFoundError):
-    if KeyError:
-        print(
-            f"There is no source attribute on the global code tag. You need to specify path for the global code."
-        )
-    if FileNotFoundError:
-        print(
-            f'Could not read global code file "{global_code_path}". Does the path exist?'
-        )
-    quit()
+    global_code = read_file(global_code_path)
+except KeyError:
+    raise Exception(
+        f"There is no source attribute on the global code tag. You need to specify path for the global code."
+    )
 global_code = re.sub(r"\s+$", "", global_code)
 # Replacing the placeholder with the code
 buffer = buffer.replace("#Here is the global code", global_code)
@@ -293,23 +293,22 @@ buffer = buffer.replace("#Here is the global code", global_code)
 # Doing the exact same thing with the class tag
 class_code_path = code.find("./code/class").attrib["source"]
 try:
-    class_code = open(class_code_path).read()
-except (KeyError, FileNotFoundError):
-    if KeyError:
-        print(
-            f"There is no source attribute on the class code tag. You need to specify path for the class code."
-        )
-    if FileNotFoundError:
-        print(
-            f'Could not read class code file "{class_code_path}". Does the path exist?'
-        )
-    quit()
+    class_code = read_file(class_code_path)
+except KeyError:
+    raise Exception(
+        f"There is no source attribute on the class code tag. You need to specify path for the class code."
+    )
 class_code = re.sub(r"\s+$", "", class_code)
 # Replacing the placeholder with the code (Adding the spaces because of intendation)
 new_class_code = """"""
 for line in class_code.splitlines():
     new_class_code += f"\n        {line}"
 buffer = buffer.replace("#Here is the class code", new_class_code)
+
+# If a key is not defined, change it to default value specified in resources.py
+for key in default_values:
+    if key in buffer:
+        buffer = buffer.replace(key, default_values[key])
 
 # Writing the finished buffer to specified file
 print(f"Writing data to the {output_file} file...")
